@@ -3,8 +3,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
@@ -35,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
     /* sound data source */
     private DetectNoise mSensor;
     ProgressBar bar;
+
+    Intent intent = new Intent(this, NotificationService.class);
     /****************** Define runnable thread again and again detect noise *********/
 
     private Runnable mSleepTask = new Runnable() {
@@ -62,6 +68,20 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         // Defined SoundLevelView in main.xml file
         setContentView(R.layout.activity_main);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "Hearing Health";
+            String description = "For hearing Health";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel("376", name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        startService(intent);
         mStatusView = findViewById(R.id.status);
         tv_noice= findViewById(R.id.tv_noice);
         bar= findViewById(R.id.progressBar1);
@@ -84,6 +104,11 @@ public class MainActivity extends AppCompatActivity {
     public void onStop() {
         super.onStop();
         stop();
+    }
+
+    public void onDestroy(){
+        super.onDestroy();
+        stopService(intent);
     }
     private void start() {
 
